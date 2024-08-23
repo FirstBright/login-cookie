@@ -4,7 +4,6 @@ import { parseCookies } from "nookies"
 
 export default function me(req: NextApiRequest, res: NextApiResponse) {
     const { token } = parseCookies({ req })
-    console.log("🚀 ~ handler ~ token:", token)
 
     if (token === undefined) {
         return res
