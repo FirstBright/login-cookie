@@ -27,29 +27,34 @@ export default async function handler(
                 .status(401)
                 .json({ message: "토큰이 제공되지 않았습니다." })
         }
+        try {
+            const decoded = verify(token, process.env.JWT_SECRET) as any
+            const userIdx = decoded.idx
+            const commentIdx = parseInt(idxStr, 10)
+            const comment = await getCommentByIdx(commentIdx)
 
-        const decoded = verify(token, process.env.JWT_SECRET as string) as any
-        const userIdx = decoded.idx
-        const commentIdx = parseInt(idxStr, 10)
-        const comment = await getCommentByIdx(commentIdx)
-
-        if (!comment) {
-            return res.status(404).json({ message: "댓글을 찾을 수 없습니다." })
-        }
-        if (req.method === "GET") {
-            return res.status(200).json(comment)
-        }
-        if (comment.authorIdx !== userIdx) {
+            if (!comment) {
+                return res
+                    .status(404)
+                    .json({ message: "댓글을 찾을 수 없습니다." })
+            }
+            if (req.method === "GET") {
+                return res.status(200).json(comment)
+            }
+            if (comment.authorIdx !== userIdx) {
+                return res.status(403).json({ message: "권한이 없습니다." })
+            }
+            if (req.method === "PUT") {
+                await updateComment(req, res, commentIdx)
+            } else if (req.method === "DELETE") {
+                await deleteComment(req, res, commentIdx)
+            } else {
+                res.status(405).json({ message: "지원하지 않는 메서드입니다." })
+            }
+        } catch {
             return res
-                .status(403)
-                .json({ message: "권한이 없습니다." })
-        }
-        if (req.method === "PUT") {
-            await updateComment(req, res, commentIdx)
-        } else if (req.method === "DELETE") {
-            await deleteComment(req, res, commentIdx)
-        } else {
-            res.status(405).json({ message: "지원하지 않는 메서드입니다." })
+                .status(401)
+                .json({ status: "fail", message: "토큰이 올바르지 않습니다." })
         }
     } catch (error) {
         console.error("API 처리 중 오류 발생:", error)

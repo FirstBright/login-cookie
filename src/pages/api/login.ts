@@ -47,7 +47,7 @@ const loginUser = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     // Step 5: Sign JWT
-    const token = await sign(payload, process.env.JWT_SECRET as string, {
+    const token = await sign(payload, process.env.JWT_SECRET , {
         expiresIn: "1h",
     })
 

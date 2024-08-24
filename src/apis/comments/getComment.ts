@@ -10,7 +10,7 @@ export async function getCommentsByPostIdx(
     try {
         const comments = await prisma.comment.findMany({
             where: {
-                postIdx: postIdx,
+                postIdx
             },
         })
         res.status(200).json(comments)

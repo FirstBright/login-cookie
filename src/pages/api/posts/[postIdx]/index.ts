@@ -4,6 +4,11 @@ import { getPostByIdx } from "@/apis/posts/getPost"
 import { parseCookies } from "nookies"
 import { updatePost } from "@/apis/posts/updatePost"
 import { deletePost } from "@/apis/posts/deletePost"
+import { JwtPayload } from "jsonwebtoken"
+
+interface IJwtPayload extends JwtPayload {
+    idx: number
+}
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const { postIdx } = req.query
@@ -24,27 +29,35 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                 .status(401)
                 .json({ message: "토큰이 제공되지 않았습니다." })
         }
-        const decoded = verify(token, process.env.JWT_SECRET as string) as any;
-        const userIdx = decoded.idx
-        const postIdx = parseInt(idxStr, 10)
-        const post = await getPostByIdx(postIdx)
+        try {
+            const decoded = verify(token, process.env.JWT_SECRET) as IJwtPayload
+            const userIdx = decoded.idx
+            const postIdxNumber = parseInt(idxStr, 10)
+            const post = await getPostByIdx(postIdxNumber)
 
-        if (!post) {
-            return res.status(404).json({ message: "게시글을 찾을 수 없습니다." })
-        }
-        if (req.method === "GET") {
-            return res.status(200).json(post)
-        }
+            if (!post) {
+                return res
+                    .status(404)
+                    .json({ message: "게시글을 찾을 수 없습니다." })
+            }
+            if (req.method === "GET") {
+                return res.status(200).json(post)
+            }
 
-        if (post.authorIdx !== userIdx){
-            return res.status(403).json({ message: "권한이 없습니다."})
-        }
-        if (req.method === "PUT") {
-            await updatePost(req, res, postIdx)
-        } else if (req.method === "DELETE") {
-            await deletePost(req, res, postIdx)
-        } else {
-            res.status(405).json({ message: "지원하지 않는 메서드입니다." })
+            if (post.authorIdx !== userIdx) {
+                return res.status(403).json({ message: "권한이 없습니다." })
+            }
+            if (req.method === "PUT") {
+                await updatePost(req, res, postIdxNumber)
+            } else if (req.method === "DELETE") {
+                await deletePost(req, res, postIdxNumber)
+            } else {
+                res.status(405).json({ message: "지원하지 않는 메서드입니다." })
+            }
+        } catch {
+            return res
+                .status(401)
+                .json({ status: "fail", message: "토큰이 올바르지 않습니다." })
         }
     } catch (error) {
         console.error("API 처리 중 오류 발생:", error)

@@ -12,7 +12,7 @@ export default function me(req: NextApiRequest, res: NextApiResponse) {
     }
     let payload
     try {
-        payload = verify(token, process.env.JWT_SECRET as string)
+        payload = verify(token, process.env.JWT_SECRET)
     } catch {
         return res
             .status(401)

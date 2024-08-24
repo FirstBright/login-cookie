@@ -17,18 +17,26 @@ export default async function handler(
                 .status(401)
                 .json({ message: "토큰이 제공되지 않았습니다." })
         }
+        try {
+            const decoded = verify(
+                token,
+                process.env.JWT_SECRET
+            ) as any
+            const userIdx = decoded.idx
 
-        const decoded = verify(token, process.env.JWT_SECRET as string) as any
-        const userIdx = decoded.idx
+            const { postIdx } = req.query
 
-        const { postIdx } = req.query
-
-        if (req.method === "POST") {
-            await createComment(req, res, Number(postIdx), userIdx)
-        } else if (req.method === "GET") {
-            await getCommentsByPostIdx(res, Number(postIdx))
-        } else {
-            res.status(405).json({ message: "지원하지 않는 메서드입니다." })
+            if (req.method === "POST") {
+                await createComment(req, res, Number(postIdx), userIdx)
+            } else if (req.method === "GET") {
+                await getCommentsByPostIdx(res, Number(postIdx))
+            } else {
+                res.status(405).json({ message: "지원하지 않는 메서드입니다." })
+            }
+        } catch {
+            return res
+                .status(401)
+                .json({ status: "fail", message: "토큰이 올바르지 않습니다." })
         }
     } catch (error) {
         console.error("API 처리 중 오류 발생:", error)

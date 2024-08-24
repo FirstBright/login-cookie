@@ -19,7 +19,7 @@ export async function getAllPosts(req: NextApiRequest, res: NextApiResponse) {
 }
 
 export const getPostByIdx = async (idx: number) => {
-    return prisma.comment.findUnique({
-        where: { idx: idx },
+    return prisma.post.findUnique({
+        where: { idx },
     })
 }
