@@ -5,12 +5,7 @@ const prisma = new PrismaClient()
 
 export async function getAllPosts(req: NextApiRequest, res: NextApiResponse) {
     try {
-        const posts = await prisma.post.findMany({
-            include: {
-                Comment: true,
-            },
-        })
-
+        const posts = await prisma.post.findMany({})
         res.status(200).json(posts)
     } catch (error) {
         console.error("Error fetching posts:", error)
@@ -21,5 +16,8 @@ export async function getAllPosts(req: NextApiRequest, res: NextApiResponse) {
 export const getPostByIdx = async (idx: number) => {
     return prisma.post.findUnique({
         where: { idx },
+        include: {
+            comments: true,
+        },
     })
 }

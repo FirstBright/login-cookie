@@ -2,7 +2,6 @@ import { NextApiRequest, NextApiResponse } from "next"
 import { parseCookies } from "nookies"
 import { verify } from "jsonwebtoken"
 import { createComment } from "@/apis/comments/createComment"
-import { getCommentsByPostIdx } from "@/apis/comments/getComment"
 
 export default async function handler(
     req: NextApiRequest,
@@ -18,18 +17,13 @@ export default async function handler(
                 .json({ message: "토큰이 제공되지 않았습니다." })
         }
         try {
-            const decoded = verify(
-                token,
-                process.env.JWT_SECRET
-            ) as any
+            const decoded = verify(token, process.env.JWT_SECRET) as any
             const userIdx = decoded.idx
 
             const { postIdx } = req.query
 
             if (req.method === "POST") {
                 await createComment(req, res, Number(postIdx), userIdx)
-            } else if (req.method === "GET") {
-                await getCommentsByPostIdx(res, Number(postIdx))
             } else {
                 res.status(405).json({ message: "지원하지 않는 메서드입니다." })
             }
